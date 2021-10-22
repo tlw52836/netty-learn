@@ -1,5 +1,6 @@
-package com.tlw.c5;
+package com.tlw.c6;
 
+import com.tlw.c5.HelloWorldServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -8,18 +9,16 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.FixedLengthFrameDecoder;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 1.设置滑动窗口的大小
- * 2.调整netty接收缓冲区ByteBuf
- * 3.定长消息解码器，10个字节解析一次
+ * 解码器：通过换行符来设置读取的位置,也可以自行设置
  */
 @Slf4j
-public class HelloWorldServer {
+public class Server3 {
     void start(){
         NioEventLoopGroup boss = new NioEventLoopGroup();
         NioEventLoopGroup worker = new NioEventLoopGroup();
@@ -28,14 +27,12 @@ public class HelloWorldServer {
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(boss,worker);
             serverBootstrap.channel(NioServerSocketChannel.class);
-            //方法1：设置滑动窗口的大小，客户端也可以设置
-            //serverBootstrap.option(ChannelOption.SO_RCVBUF,10);
-            //方法2：调整netty接收缓冲区ByteBuf
-            serverBootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR,new AdaptiveRecvByteBufAllocator(16,16,16));
+
             serverBootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel ch) throws Exception {
-                    //ch.pipeline().addLast(new FixedLengthFrameDecoder(10));  //定长消息解码器，10个字节解析一次
+                    //解码器：通过换行符来设置读取的位置
+                    ch.pipeline().addLast(new LineBasedFrameDecoder(1024)); //1024设置最长字符串，以免接收的字符串中没有换行符
                     ch.pipeline().addLast(new LoggingHandler((LogLevel.DEBUG)));
                 }
             });
@@ -50,6 +47,6 @@ public class HelloWorldServer {
     }
 
     public static void main(String[] args) {
-        new HelloWorldServer().start();
+        new Server3().start();
     }
 }
