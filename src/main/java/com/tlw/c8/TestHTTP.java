@@ -11,6 +11,8 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+
 /**
  * HTTP解析
  */
@@ -41,7 +43,10 @@ public class TestHTTP {
                             //返回响应
                             //参数分别是协议版本与状态码
                             DefaultFullHttpResponse response = new DefaultFullHttpResponse(msg.protocolVersion(), HttpResponseStatus.OK);
-                            response.content().writeBytes("<h1>a grancefull girl<h1>".getBytes());
+
+                            byte[] bytes = "<h1>a grancefull girl<h1>".getBytes();
+                            response.headers().setInt(CONTENT_LENGTH,bytes.length);  //设置内容长度，以免浏览器一直转圈接受数据
+                            response.content().writeBytes(bytes);
 
                             //写回对象
                             ctx.writeAndFlush(response);
